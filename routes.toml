@@ -2,7 +2,7 @@
   [http.middlewares]
 
     [http.middlewares.api-stripprefix.stripPrefix]
-      prefixes = ["/api/v1", "/api/v2", "/api/v3", "/api/v4"]
+      prefixes = ["/api/v1", "/api/v2", "/api/v3", "/api/v4", "/api/v5"]
       forceSlash = false
 
   [http.routers]
@@ -31,6 +31,12 @@
       rule = "PathPrefix(`/api/v4`)"
       middlewares = ["api-stripprefix"]
 
+    [http.routers.app5]
+      entryPoints = ["http"]
+      service = "app5"
+      rule = "PathPrefix(`/api/v5`)"
+      middlewares = ["api-stripprefix"]
+
   [http.services]
 
     [http.services.app1]
@@ -53,3 +59,7 @@
         [[http.services.app4.loadBalancer.servers]]
           url = "http://127.0.0.1:5300/"
 
+    [http.services.app5]
+      [http.services.app5.loadBalancer]
+        [[http.services.app5.loadBalancer.servers]]
+          url = "http://127.0.0.1:5400/"

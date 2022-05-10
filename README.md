@@ -1,11 +1,8 @@
-# CPSC-449 web-backend Project 2
+# CPSC-449 web-backend Project 5
 
 # Members
 
-Dan Lungaro dlungaro@csu.fullerton.edu
-Charles Chung cc506@csu.fullerton.edu
-Amman-Kabier Sandhu ammsandhu@csu.fullerton.edu
-Johnathan Carranza johnathancarranza@csu.fullerton.edu
+...
 
 # How to initialize the program
 
@@ -19,10 +16,12 @@ This sh script will initalize the databases for each of the microservices as wel
 
 # Endpoints
 
-http://localhost:9999/api/v1/docs
+http://localhost:9999/api/v1/docs - validate
 
-http://localhost:9999/api/v2/docs
+http://localhost:9999/api/v2/docs - stats
 
-http://localhost:9999/api/v3/docs
+http://localhost:9999/api/v3/docs - answer
 
-http://localhost:9999/api/v4/docs
+http://localhost:9999/api/v4/docs - game_state
+
+http://localhost:9999/api/v5/docs - backend_for_frontend

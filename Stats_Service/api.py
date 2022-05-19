@@ -1,10 +1,16 @@
 from http import HTTPStatus
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from Stats_Service.models import User, Game
 from Stats_Service.update.update import redisClient
 import sqlite3
 import contextlib
 import uuid
+from pydantic import BaseModel
+
+class UserDbInfo(BaseModel):
+    user_id: str
+    shard_key: int
+
 
 app = FastAPI()
 
@@ -21,6 +27,75 @@ def get_db2():
     with contextlib.closing(sqlite3.connect("StatDB_2.db")) as db2:
         db2.row_factory = sqlite3.Row
         yield db2
+
+@app.get("/user/{user_id}/gamesPlayed")
+def get_last_game_id_from_user(user_id: str, db: sqlite3.Connection = Depends(get_db), 
+        db1: sqlite3.Connection = Depends(get_db1), db2: sqlite3.Connection = Depends(get_db2)):
+    shard_key = int(uuid.UUID(user_id)) % 3
+    if shard_key == 0:
+        cur = db.execute(
+        """
+        SELECT * FROM games WHERE user_id = (?);
+        """,
+        ([user_id]))
+        games = cur.fetchall()
+        if games:
+            return games
+
+    if shard_key == 1:
+        cur = db1.execute(
+        """
+        SELECT * FROM games WHERE user_id = (?);
+        """,
+        ([user_id]))
+        games = cur.fetchall()
+        if games:
+            return games
+
+    if shard_key == 2:
+        cur = db2.execute(
+        """
+        SELECT * FROM games WHERE user_id = (?);
+        """,
+        ([user_id]))
+        games = cur.fetchall()
+        if games:
+            return games
+
+    raise HTTPException(status_code=404, detail="Item not found")
+
+
+@app.get("/user/{username}")
+def get_user_id_by_username(username: str, db: sqlite3.Connection = Depends(get_db),
+                  db1: sqlite3.Connection = Depends(get_db1), db2: sqlite3.Connection = Depends(get_db2)):
+    cur = db.execute(
+    """
+    SELECT user_id FROM users WHERE username = (?);
+    """,
+    ([username]))
+    user = cur.fetchall()
+    if user:
+        return UserDbInfo(user_id=user[0][0], shard_key=0)
+
+    cur = db1.execute(
+    """
+    SELECT user_id FROM users WHERE username = (?);
+    """,
+    ([username]))
+    user = cur.fetchall()
+    if user:
+        return UserDbInfo(user_id=user[0][0], shard_key=1)
+
+    cur = db2.execute(
+    """
+    SELECT user_id FROM users WHERE username = (?);
+    """,
+    ([username]))
+    user = cur.fetchall()
+    if user:
+        return UserDbInfo(user_id=user[0][0], shard_key=2)
+
+    raise HTTPException(status_code=404, detail="Item not found")
 
 # Posting a win or loss for a particular game, along with a timestamp and number of guesses.
 @app.post("/games")

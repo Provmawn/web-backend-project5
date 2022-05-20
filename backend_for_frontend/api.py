@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, status
 from Stats_Service.models import User, Game
 from Stats_Service.update.update import redisClient
 import sqlite3
@@ -7,7 +7,11 @@ import contextlib
 from http import HTTPStatus
 import httpx
 import json
+from datetime import datetime
 from pydantic import BaseModel
+
+class Word(BaseModel):
+    word: str
 
 app = FastAPI()
 
@@ -40,4 +44,85 @@ def start_new_game(username: str):
 
     return response
 
+class Guess(BaseModel):
+    word: str
+    user_id: str
+
+@app.post("/game/{game_id}")
+def guess_a_word(game_id: int, guess: Guess):
+
+    user_id = guess.user_id
+    word = guess.word
+
+    # get game state
+    r = httpx.get("http://localhost:9999/api/v4/restore/" + user_id)
+    game_state_content = json.loads(r.content.decode('utf-8'))
+    game_state = json.loads(game_state_content[user_id])
+
+    # setup response
+    status = "valid" 
+    remaining_guesses = len(game_state["guesses"])
+    letters = {}
+
+    # check if word is valid
+    r = httpx.post("http://localhost:9999/api/v1/WordValidations", data=json.dumps({"word": word}))
+    valid_word_content = json.loads(r.content.decode('utf-8'))
+    if not valid_word_content["word_valid"]:
+        return {"status": "invalid", "remaining": remaining_guesses}
+
+    # record guess and update game state
+    r = httpx.put("http://localhost:9999/api/v4/update/" + user_id + "/" + word, data=json.dumps({"user_id": user_id, "guess": word}))
+    game_state_content = json.loads(r.content.decode('utf-8'))
+    game_state = json.loads(game_state_content[user_id])
+
+    # perform guess
+    now = datetime.now().timestamp()
+    r = httpx.post("http://localhost:9999/api/v3/check", data=json.dumps({"word": word, "timestamp": str(now)}))
+    letter_colors_content = json.loads(r.content.decode('utf-8'))
+    
+    # check if guess is correct
+
+    for color in letter_colors_content:
+        guess_status = "win"
+        if color == "yellow":
+            guess_status = "incorrect"
+        status = guess_status
+
+    response = {
+        "status": status,
+        "remaining": remaining_guesses,
+        "letters": letter_colors_content,
+    }
+
+    return response
+    
+
+# check if the user has guesses remaining
+#    guess = json.loads(r.content.decode('utf-8'))
+# Record the guess and update the number of guesses remaining
+#    r = await client.get("http://localhost:9999/api/v4/update/{user_id}/{guess}")
+# Check to see if the guess is correct
+#    r = await client.get("http://localhost:9999/api/v3/check")
+# if the guess is correct
+#        r = await client.get("http://localhost:9999/api/v2/games/{user_id}")
+# If the guess is incorrect and no guesses remain…
+#        r = await client.get("http://localhost:9999/api/v4/update/{user_id}/{guess}")
+# If the guess is incorrect and additional guesses remain…
+#        r = await client.get("http://localhost:9999/api/v3/check")
+#    r1 = await client.get("http://localhost:9999/api/v4")
+#    results = json.loads(r.content.decode('utf-8'))
+#    r2 = await client.get("http://localhost:9999/api/v3/check")
+#    answers = json.loads(r.content.decode('utf-8'))
+#    r3 = await client.get("http://localhost:9999/api/v2/docs")
+#    stats = json.loads(r.content.decode('utf-8'))
+#
+#    response = {
+#        "status": stats['wins'],
+#        "remaining": results['guesses'],
+#        "guesses": answers['guess.word'],
+#        "letters": None,
+#        "correct": answers['correct_letter'],
+#        "present": answers['guess_letter'],
+#    }
+#    return response
 

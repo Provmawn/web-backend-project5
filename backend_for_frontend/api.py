@@ -96,33 +96,3 @@ def guess_a_word(game_id: int, guess: Guess):
 
     return response
     
-
-# check if the user has guesses remaining
-#    guess = json.loads(r.content.decode('utf-8'))
-# Record the guess and update the number of guesses remaining
-#    r = await client.get("http://localhost:9999/api/v4/update/{user_id}/{guess}")
-# Check to see if the guess is correct
-#    r = await client.get("http://localhost:9999/api/v3/check")
-# if the guess is correct
-#        r = await client.get("http://localhost:9999/api/v2/games/{user_id}")
-# If the guess is incorrect and no guesses remain…
-#        r = await client.get("http://localhost:9999/api/v4/update/{user_id}/{guess}")
-# If the guess is incorrect and additional guesses remain…
-#        r = await client.get("http://localhost:9999/api/v3/check")
-#    r1 = await client.get("http://localhost:9999/api/v4")
-#    results = json.loads(r.content.decode('utf-8'))
-#    r2 = await client.get("http://localhost:9999/api/v3/check")
-#    answers = json.loads(r.content.decode('utf-8'))
-#    r3 = await client.get("http://localhost:9999/api/v2/docs")
-#    stats = json.loads(r.content.decode('utf-8'))
-#
-#    response = {
-#        "status": stats['wins'],
-#        "remaining": results['guesses'],
-#        "guesses": answers['guess.word'],
-#        "letters": None,
-#        "correct": answers['correct_letter'],
-#        "present": answers['guess_letter'],
-#    }
-#    return response
-

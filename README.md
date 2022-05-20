@@ -2,7 +2,7 @@
 
 # Members
 
-...
+Amman-Kabier Sandhu, Bhargav Navdiya, Tianna Cano, Akshaya Kizhkkencherry
 
 # How to initialize the program
 

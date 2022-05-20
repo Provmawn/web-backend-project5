@@ -62,7 +62,6 @@ def guess_a_word(game_id: int, guess: Guess):
     # setup response
     status = "valid" 
     remaining_guesses = len(game_state["guesses"])
-    letters = {}
 
     # check if word is valid
     r = httpx.post("http://localhost:9999/api/v1/WordValidations", data=json.dumps({"word": word}))
